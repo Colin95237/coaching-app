@@ -1,14 +1,23 @@
-'use server'
+// app/api/cron/check-payments/route.ts
 import { supabase } from '../../../lib/supabase'
+import { NextResponse } from 'next/server'
 
 // Optional: E-Mail Funktion
-async function sendPaymentReminder(email: string, name: string, invoiceNr: string, amount: number) {
+async function sendPaymentReminder(
+  email: string,
+  name: string,
+  invoiceNr: string,
+  amount: number
+) {
   console.log(`Reminder an ${email} für Rechnung ${invoiceNr} über ${amount} €`)
   // Hier später Resend API aufrufen
 }
 
+// Edge runtime aktivieren
+export const runtime = 'edge'
+
 export async function GET(request: Request) {
-  // Einfacher Schutz: Secret in Header
+  // Einfacher Schutz: Secret in Header prüfen
   const cronSecret = request.headers.get('x-cron-secret')
   if (cronSecret !== process.env.CRON_SECRET) {
     return new Response('Unauthorized', { status: 401 })
@@ -26,11 +35,11 @@ export async function GET(request: Request) {
         )
       `)
       .lt('due_date', new Date().toISOString())
-      .eq('status', 'sent') // nur offene Rechnungen
+      .eq('status', 'sent')
 
     if (error) throw error
 
-    // 2️⃣ Rechnungen als überfällig markieren & Erinnerung senden
+    // 2️⃣ Rechnungen als überfällig markieren & optional Reminder senden
     for (const invoice of overdueInvoices || []) {
       await supabase
         .from('invoices')
@@ -40,7 +49,6 @@ export async function GET(request: Request) {
         })
         .eq('id', invoice.id)
 
-      // Optional: E-Mail an Kunden
       await sendPaymentReminder(
         invoice.session.customer.email,
         invoice.session.customer.name,
@@ -49,12 +57,12 @@ export async function GET(request: Request) {
       )
     }
 
-    return new Response(JSON.stringify({
+    return NextResponse.json({
       checked: overdueInvoices?.length || 0,
       timestamp: new Date().toISOString()
-    }))
+    })
   } catch (error) {
     console.error(error)
-    return new Response(JSON.stringify({ error: String(error) }), { status: 500 })
+    return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 }
