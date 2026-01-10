@@ -7,8 +7,6 @@ async function sendPaymentReminder(email: string, name: string, invoiceNr: strin
   // Hier später Resend API aufrufen
 }
 
-export const runtime = 'edge' // schneller & kostenlos bei Vercel
-
 export async function GET(request: Request) {
   // Einfacher Schutz: Secret in Header
   const cronSecret = request.headers.get('x-cron-secret')
