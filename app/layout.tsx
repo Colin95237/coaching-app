@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Nav from "./components/nav"; // <--- Import der Nav-Komponente
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,6 +28,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* NAVIGATION ÜBER ALLEN SEITEN */}
+        <Nav />
+
+        {/* INHALT DER SEITEN */}
         {children}
       </body>
     </html>
