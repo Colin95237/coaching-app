@@ -1,5 +1,5 @@
 // app/api/cron/check-payments/route.ts
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
 // Optional: E-Mail Funktion
@@ -18,8 +18,9 @@ export const runtime = 'edge'
 
 export async function GET(request: Request) {
   // Einfacher Schutz: Secret in Header prüfen
-  const cronSecret = request.headers.get('x-cron-secret')
-  if (cronSecret !== process.env.CRON_SECRET) {
+  const authHeader = request.headers.get('authorization')
+
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response('Unauthorized', { status: 401 })
   }
 

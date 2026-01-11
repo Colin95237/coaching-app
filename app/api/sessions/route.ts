@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '../../lib/supabase'
-import { generateOutlookMeetingLink } from '../../lib/meeting'
-import { generateCalendarEvent } from '../../lib/calendar'
+import { supabase } from '@/lib/supabase'
+import { generateOutlookMeetingLink } from '../../../lib/meeting'
+import { generateCalendarEvent } from '../../../lib/calendar'
 
 export async function GET() {
   try {

@@ -1,6 +1,6 @@
-import { supabase } from '../../../../lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { createInvoicePDF } from '../../../../lib/invoice'
+import { createInvoicePDF } from '../../../../../lib/invoice'
 
 export async function POST(
   request: Request,

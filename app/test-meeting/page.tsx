@@ -1,6 +1,6 @@
 'use client'
 
-import { generateOutlookMeetingLink } from '../lib/meeting'
+import { generateOutlookMeetingLink } from '../../lib/meeting'
 
 export default function TestMeeting() {
   const meetingLink = generateOutlookMeetingLink(

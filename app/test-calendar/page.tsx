@@ -1,6 +1,6 @@
 'use client'
 
-import { generateCalendarEvent } from '../lib/calendar'
+import { generateCalendarEvent } from '../../lib/calendar'
 
 export default function TestCalendar() {
   function downloadICS() {
