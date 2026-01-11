@@ -1,56 +1,63 @@
-import { supabase } from '@/lib/supabase'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { createInvoicePDF } from '../../../../../lib/invoice'
+import { createInvoicePDF } from '@/lib/invoice'
 
 export async function POST(
   request: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  try {
-    // --- 0. User prüfen ---
-    const { data: { user } } = await supabase.auth.getUser()
+  // ✅ WICHTIG: await cookies()
+  const cookieStore = await cookies()
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Bitte einloggen.' },
-        { status: 401 }
-      )
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+      },
     }
+  )
 
-    // ✅ params korrekt auflösen
-    const { id: sessionId } = await context.params
+  // 🔐 Auth prüfen
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-    // 1. Session auf completed setzen
-    const { data: session, error: sessionError } = await supabase
-      .from('sessions')
-      .update({ status: 'completed' })
-      .eq('id', sessionId)
-      .select(`
-        *,
-        customers (*)
-      `)
-      .single()
-
-    if (sessionError) throw sessionError
-
-    // 2. PDF erzeugen
-    const pdf = createInvoicePDF(
-      session,
-      session.customers
-    )
-
-    // 3. PDF als Base64 zurückgeben
-    const pdfBase64 = pdf.output('datauristring')
-
-    return NextResponse.json({
-      success: true,
-      pdf: pdfBase64,
-    })
-  } catch (error) {
-    console.error(error)
+  if (!user) {
     return NextResponse.json(
-      { error: 'Fehler beim Abschließen der Session' },
-      { status: 500 }
+      { error: 'Unauthorized. Bitte einloggen.' },
+      { status: 401 }
     )
   }
+
+  const sessionId = params.id
+
+  // 1. Session abschließen
+  const { data: session, error } = await supabase
+    .from('sessions')
+    .update({ status: 'completed' })
+    .eq('id', sessionId)
+    .select(`
+      *,
+      customers (*)
+    `)
+    .single()
+
+  if (error) {
+    console.error(error)
+    return NextResponse.json({ error: 'DB Fehler' }, { status: 500 })
+  }
+
+  // 2. Rechnung als PDF erzeugen
+  const pdf = createInvoicePDF(session, session.customers)
+  const pdfBase64 = pdf.output('datauristring')
+
+  return NextResponse.json({
+    success: true,
+    pdf: pdfBase64,
+  })
 }
