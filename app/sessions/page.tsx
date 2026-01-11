@@ -113,7 +113,19 @@ export default function SessionsPage() {
   -------------------------------- */
 
   async function completeSession(sessionId: string) {
-    const res = await fetch(`/api/sessions/${sessionId}/complete`, { method: 'POST' })
+    const res = await fetch(
+      `/api/sessions/${sessionId}/complete`,
+      {
+        method: 'POST',
+        credentials: 'include', // 🔥 DAS war der Fix
+      }
+    )
+
+    if (!res.ok) {
+      alert('Nicht autorisiert oder Fehler beim Abschließen der Session')
+      return
+    }
+
     const data = await res.json()
 
     if (data.pdf) {
