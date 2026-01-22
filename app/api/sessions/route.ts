@@ -13,6 +13,7 @@ export async function GET() {
         start_time,
         end_time,
         status,
+        teams_link,
         customers (
           id,
           name,

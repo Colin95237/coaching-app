@@ -19,6 +19,7 @@ type Session = {
   start_time: string
   end_time: string
   status: string
+  teams_link?: string
   customers: Customer
 }
 
@@ -220,6 +221,17 @@ export default function SessionsPage() {
             Kunde: {s.customers.name}<br />
             Start: {new Date(s.start_time).toLocaleString('de-DE')}<br />
             Status: {s.status}
+
+            {/* 🔗 MEETING LINK */}
+            {s.teams_link && (
+              <a
+                href={s.teams_link}
+                target="_blank"
+                className="block mt-2 text-blue-600 underline"
+              >
+                ➕ Zu Outlook / Teams hinzufügen
+              </a>
+            )}
 
             {s.status !== 'completed' && (
               <button
